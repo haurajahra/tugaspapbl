@@ -17,7 +17,6 @@
 package com.example.android.tiltspot;
 
 import android.content.Context;
-import android.content.pm.ActivityInfo;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -26,9 +25,16 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Display;
 import android.view.Surface;
+import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity
         implements SensorEventListener {
@@ -51,6 +57,8 @@ public class MainActivity extends AppCompatActivity
     private TextView mTextSensorPitch;
     private TextView mTextSensorRoll;
 
+    private Button saveButton;
+
     // ImageView drawables to display spots.
     private ImageView mSpotTop;
     private ImageView mSpotBottom;
@@ -65,8 +73,35 @@ public class MainActivity extends AppCompatActivity
     // non-zero drift.
     private static final float VALUE_DRIFT = 0.05f;
 
+    private void saveTextToFile() {
+        // Get the text from the three TextViews
+        String text1 = mTextSensorAzimuth.getText().toString();
+        String text2 = mTextSensorPitch.getText().toString();
+        String text3 = mTextSensorRoll.getText().toString();
+
+        // Concatenate the three strings into a single string
+        String allText = "Data Sensor TiltSpot sebagai berikut:" +
+                         "\n- Sensor Azimuth: " + text1 +
+                         "\n- Sensor Pitch: " + text2+
+                         "\n- Sensor Roll: " + text3;
+
+        // Create a new file to store the text
+        File textFile = new File(getExternalFilesDir(null), "save.txt");
+
+        try {
+            // Write the text to the file
+            FileWriter writer = new FileWriter(textFile);
+            writer.write(allText);
+            writer.close();
+            // Show a toast message to indicate that the text has been saved
+            Toast.makeText(this, "Text saved to " + textFile.getAbsolutePath(), Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -78,7 +113,17 @@ public class MainActivity extends AppCompatActivity
         mSpotLeft = (ImageView) findViewById(R.id.spot_left);
         mSpotRight = (ImageView) findViewById(R.id.spot_right);
 
-        // Get accelerometer and magnetometer sensors from the sensor manager.
+        // Set an OnClickListener for the save button
+
+        saveButton = (Button) findViewById(R.id.save_button);
+
+        saveButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                saveTextToFile();
+            }
+        });
+
+            // Get accelerometer and magnetometer sensors from the sensor manager.
         // The getDefaultSensor() method returns null if the sensor
         // is not available on the device.
         mSensorManager = (SensorManager) getSystemService(
